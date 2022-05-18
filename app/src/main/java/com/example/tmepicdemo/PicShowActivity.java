@@ -17,6 +17,8 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
@@ -32,6 +34,9 @@ public class PicShowActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //透明状态栏
+        Window window = getWindow();
+        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_pic_show);
         initView();
     }
@@ -40,7 +45,7 @@ public class PicShowActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.view_pager);
         Intent intent = getIntent();
         int position = intent.getIntExtra("position", 0);
-        PicAdapter picAdapter = new PicAdapter((List<String>) intent.getSerializableExtra("images"), this);
+        PicAdapter picAdapter = new PicAdapter(intent.getStringArrayListExtra("images"), this);
         viewPager.setAdapter(picAdapter);
         viewPager.setCurrentItem(position);
         Display display = getWindowManager().getDefaultDisplay();
@@ -77,29 +82,17 @@ public class PicShowActivity extends AppCompatActivity {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(listView.get(position), options);
-            options.inSampleSize = calSampleSize(options, WIDTH, WIDTH);
+            options.inSampleSize = Utils.calSampleSize(options, WIDTH, WIDTH);
             options.inJustDecodeBounds = false;
             imageView.setImageBitmap(BitmapFactory.decodeFile(listView.get(position), options));
             map.put(position, imageView);
             container.addView(imageView, 0);
-            return map.get(position);
+            return imageView;
         }
 
         @Override
         public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
             return view == object;
         }
-    }
-
-    public static int calSampleSize(BitmapFactory.Options options, int dstWidth, int dstHeight) {
-        int rawWidth = options.outWidth;
-        int rawHeight = options.outHeight;
-        int inSampleSize = 1;
-        if (rawWidth > dstWidth || rawHeight > dstHeight) {
-            float ratioHeight = (float) rawHeight / dstHeight;
-            float ratioWidth = (float) rawWidth / dstHeight;
-            inSampleSize = (int) Math.min(ratioWidth, ratioHeight);
-        }
-        return inSampleSize;
     }
 }
